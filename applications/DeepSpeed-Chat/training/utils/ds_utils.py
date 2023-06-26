@@ -37,6 +37,7 @@ def get_train_ds_config(offload,
         "fp16": {
             "enabled": True,
             "loss_scale_window": 100
+            "initial_scale_power": 32
         },
         "gradient_clipping": 1.0,
         "prescale_gradients": False,
