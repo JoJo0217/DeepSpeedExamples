@@ -39,6 +39,10 @@ def get_train_ds_config(offload,
             "loss_scale_window": 100
             "initial_scale_power": 32
         },
+        "checkpoint":{
+          "use_node_local_storage":True
+        }
+        ,
         "gradient_clipping": 1.0,
         "prescale_gradients": False,
         "wall_clock_breakdown": False,
