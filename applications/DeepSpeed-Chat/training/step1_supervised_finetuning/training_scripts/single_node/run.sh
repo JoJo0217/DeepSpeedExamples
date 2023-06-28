@@ -27,6 +27,7 @@ deepspeed main.py \
    --lr_scheduler_type cosine \
    --num_warmup_steps 0 \
    --seed 1234 \
+   --offload \
    --zero_stage $ZERO_STAGE \
    --deepspeed \
    --output_dir $OUTPUT 
