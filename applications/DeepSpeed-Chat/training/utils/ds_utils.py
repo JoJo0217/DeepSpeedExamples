@@ -38,9 +38,12 @@ def get_train_ds_config(offload,
         "steps_per_print": 10,
         "zero_optimization": zero_opt_dict,
         "fp16": {
-            "enabled": True,
-            "loss_scale_window": 100,
-            "initial_scale_power": 32
+            "enabled": "auto",
+            "loss_scale":0,
+            "hysteresis":2,
+            "min_loss_scale":1,
+            "loss_scale_window": 1000,
+            "initial_scale_power": 64
         },
         "checkpoint":{
           "use_node_local_storage":True
