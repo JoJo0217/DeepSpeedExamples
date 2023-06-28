@@ -9,7 +9,7 @@ if [ "$OUTPUT" == "" ]; then
     OUTPUT=./output
 fi
 if [ "$ZERO_STAGE" == "" ]; then
-    ZERO_STAGE=2
+    ZERO_STAGE=3
 fi
 mkdir -p $OUTPUT
 
