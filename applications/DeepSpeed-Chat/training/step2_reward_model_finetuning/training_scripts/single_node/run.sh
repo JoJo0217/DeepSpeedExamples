@@ -9,7 +9,7 @@ if [ "$OUTPUT" == "" ]; then
     OUTPUT=./output
 fi
 if [ "$ZERO_STAGE" == "" ]; then
-    ZERO_STAGE=2
+    ZERO_STAGE=3
 fi
 mkdir -p $OUTPUT
 
@@ -18,8 +18,8 @@ deepspeed main.py \
    --data_split 2,4,4 \
    --model_name_or_path EleutherAI/polyglot-ko-1.3b \
    --num_padding_at_beginning 1 \
-   --per_device_train_batch_size 4 \
-   --per_device_eval_batch_size 4 \
+   --per_device_train_batch_size 1 \
+   --per_device_eval_batch_size 1 \
    --max_seq_len 512 \
    --learning_rate 5e-5 \
    --weight_decay 0.1 \
