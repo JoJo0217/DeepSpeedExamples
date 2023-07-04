@@ -7,7 +7,7 @@
 # Note that usually LoRA needs to use larger learning rate
 OUTPUT_PATH=./output
 mkdir -p $OUTPUT_PATH
-
+rm -rf /tmp/data_files/
 deepspeed main.py \
    --data_path local/jsonfile \
    --data_split 10,0,0 \
