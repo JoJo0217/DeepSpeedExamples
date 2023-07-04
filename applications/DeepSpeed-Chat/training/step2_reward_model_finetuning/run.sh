@@ -15,7 +15,7 @@ mkdir -p $OUTPUT
 
 deepspeed main.py \
    --data_path local/jsonfile \
-   --data_split 2,4,4 \
+   --data_split 0,10,0 \
    --model_name_or_path EleutherAI/polyglot-ko-1.3b \
    --num_padding_at_beginning 1 \
    --per_device_train_batch_size 1 \
@@ -29,6 +29,9 @@ deepspeed main.py \
    --gradient_accumulation_steps 1 \
    --lr_scheduler_type cosine \
    --num_warmup_steps 0 \
+   --lora_dim 128 \
+   --lora_module_name query_key_value \
+   --only_optimize_lora \
    --seed 1234 \
    --zero_stage $ZERO_STAGE \
    --deepspeed \
