@@ -20,7 +20,7 @@ deepspeed main.py \
    --num_padding_at_beginning 1 \
    --per_device_train_batch_size 4 \
    --per_device_eval_batch_size 4 \
-   --max_seq_len 1024 \
+   --max_seq_len 512 \
    --learning_rate 5e-5 \
    --weight_decay 0.1 \
    --offload \
