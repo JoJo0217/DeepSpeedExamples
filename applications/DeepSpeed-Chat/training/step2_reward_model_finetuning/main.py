@@ -306,13 +306,16 @@ def main():
     print_rank_0(
         f"chosen_last_scores (higher is better) : {reward_score}, acc (higher is better) : {acc}",
         args.global_rank)
-
+    f = open('./train_loss.log', 'w')
+    f.close()
+    f = open('./train_loss.log', 'a')
     for epoch in range(args.num_train_epochs):
         print_rank_0(
             f"Beginning of Epoch {epoch+1}/{args.num_train_epochs}, Total Micro Batches {len(train_dataloader)}",
             args.global_rank)
         rm_model.train()
         mean_loss = 0
+        mic_mean_loss=0
         for step, batch in enumerate(train_dataloader):
             batch = to_device(batch, device)
             outputs = rm_model(**batch, use_cache=False)
@@ -320,6 +323,10 @@ def main():
             rm_model.backward(loss)
             rm_model.step()
             mean_loss += loss.item()
+            if step!=0 and step%10==0:
+                print('cur_step: '+str(step)+ ' cur_loss: '+str(mic_mean_loss/10))
+                f.write('cur_step: '+str(step)+ ' cur_loss: '+str(mic_mean_loss/10)+'\n')
+                mic_mean_loss=0
         print_rank_0(
             f"Epoch {epoch+1}/{args.num_train_epochs} with loss {mean_loss/(step+1)}",
             args.global_rank)
@@ -332,7 +339,7 @@ def main():
             f"chosen_last_scores (higher is better) : {reward_score}, acc (higher is better) : {acc}",
             args.global_rank)
         rm_model.tput_timer.update_epoch_count()
-
+    f.close()
     if args.output_dir is not None:
         print_rank_0('saving model ...', args.global_rank)
         rm_model = convert_lora_to_linear_layer(rm_model)
