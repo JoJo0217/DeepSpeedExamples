@@ -301,18 +301,25 @@ def main():
         args.global_rank)
     perplexity = evaluation(model, eval_dataloader)
     print_rank_0(f"ppl: {perplexity}", args.global_rank)
-
+    f = open('./train_loss.log', 'w')
+    f.close()
+    f = open('./train_loss.log', 'a')
     for epoch in range(args.num_train_epochs):
         print_rank_0(
             f"Beginning of Epoch {epoch+1}/{args.num_train_epochs}, Total Micro Batches {len(train_dataloader)}",
             args.global_rank)
         model.train()
+        mean_loss=0
         for step, batch in enumerate(train_dataloader):
             batch = to_device(batch, device)
             outputs = model(**batch, use_cache=False)
             loss = outputs.loss
             model.backward(loss)
             model.step()
+            if step!=0 and step%10==0:
+                print('cur_step: '+str(step)+ ' cur_loss: '+str(mean_loss/10))
+                f.write('cur_step: '+str(step)+ ' cur_loss: '+str(mean_loss/10)+'\n')
+                mean_loss=0
 
         # Evaluate perplexity on the validation set.
         print_rank_0(
@@ -321,7 +328,7 @@ def main():
         perplexity = evaluation(model, eval_dataloader)
         print_rank_0(f"ppl: {perplexity}", args.global_rank)
         model.tput_timer.update_epoch_count()
-
+    f.close()
     if args.output_dir is not None:
         print_rank_0('saving the final model ...', args.global_rank)
         model = convert_lora_to_linear_layer(model)
