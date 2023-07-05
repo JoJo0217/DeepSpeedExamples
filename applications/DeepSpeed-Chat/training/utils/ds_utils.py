@@ -47,9 +47,9 @@ def get_train_ds_config(offload,
         #    "min_loss_scale":1,
         #    "loss_scale_window": 1000,
         #},
-        #"bf16":{
-        #  "enabled":True
-        #},
+        "bf16":{
+          "enabled":True
+        },
         "checkpoint":{
           "use_node_local_storage":True
         }
