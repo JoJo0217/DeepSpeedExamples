@@ -322,6 +322,7 @@ def main():
             loss = outputs["loss"]
             rm_model.backward(loss)
             rm_model.step()
+            mic_mean_loss += loss.item()
             mean_loss += loss.item()
             if step!=0 and step%10==0:
                 print('cur_step: '+str(step)+ ' cur_loss: '+str(mic_mean_loss/10))
