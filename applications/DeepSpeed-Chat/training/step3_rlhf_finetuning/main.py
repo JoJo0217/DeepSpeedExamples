@@ -406,7 +406,9 @@ def main():
 
     # Train!
     print_rank_0("***** Running training *****", args.global_rank)
-
+    f = open('./train_loss.log', 'w')
+    f.close()
+    f = open('./train_loss.log', 'a')
     for epoch in range(args.num_train_epochs):
         print_rank_0(
             f"Beginning of Epoch {epoch+1}/{args.num_train_epochs}, Total Generation Batches {min(len(prompt_train_dataloader), len(unsupervised_train_dataloader))}",
@@ -463,17 +465,21 @@ def main():
                 print_rank_0(
                     f'epoch: {epoch}|step: {step}|ppo_ep: {ppo_ep+1}|act_loss: {actor_loss_sum/inner_iter}|cri_loss: {critic_loss_sum/inner_iter}|unsuper_loss: {unsup_loss_sum/inner_iter}',
                     args.global_rank)
+                f.write(f'epoch: {epoch}|step: {step}|ppo_ep: {ppo_ep+1}|act_loss: {actor_loss_sum/inner_iter}|cri_loss: {critic_loss_sum/inner_iter}|unsuper_loss: {unsup_loss_sum/inner_iter}'
+                    +str(args.global_rank))
                 average_reward = get_all_reduce_mean(average_reward).item()
                 print_rank_0(
                     f"average reward score: {average_reward/inner_iter}",
                     args.global_rank)
+                f.write(f"average reward score: {average_reward/inner_iter}"+
+                    str(args.global_rank))
                 print_rank_0(
                     "-------------------------------------------------------------------------------------",
                     args.global_rank)
 
             if args.actor_gradient_checkpointing:
                 rlhf_engine.actor.gradient_checkpointing_disable()
-
+    f.close()
     if args.output_dir is not None:
         print_rank_0('saving model ...')
         rlhf_engine.actor = convert_lora_to_linear_layer(rlhf_engine.actor)
