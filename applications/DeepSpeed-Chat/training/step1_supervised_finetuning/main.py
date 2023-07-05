@@ -314,6 +314,7 @@ def main():
             batch = to_device(batch, device)
             outputs = model(**batch, use_cache=False)
             loss = outputs.loss
+            mean_loss+=loss.item()
             model.backward(loss)
             model.step()
             if step!=0 and step%10==0:
