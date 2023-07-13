@@ -161,6 +161,22 @@ def parse_args():
     parser.add_argument('--only_optimize_lora',
                         action='store_true',
                         help='Only optimize the LoRA parameters.')
+    parser.add_argument('--save_dir',
+                        type=str,
+                        default=None,
+                        help='checkpoint dir')
+    parser.add_argument('--load_dir',
+                        type=str,
+                        default=None,
+                        help='checkpoint load dir')
+    parser.add_argument('--save_interval',
+                        type=int,
+                        default=200,
+                        help='Only optimize the LoRA parameters.')            
+    parser.add_argument('--ckpt_id',
+                        type=int,
+                        default=None,
+                        help='Only optimize the LoRA parameters.')         
     parser = deepspeed.add_config_arguments(parser)
     args = parser.parse_args()
 
@@ -309,6 +325,15 @@ def main():
     f = open('./train_loss.log', 'w')
     f.close()
     f = open('./train_loss.log', 'a')
+
+    client_sd={}
+    road_step=-1
+    if(args.load_dir!=None):
+      _, client_sd = rm_model.load_checkpoint(args.load_dir, args.ckpt_id)
+      road_step = client_sd['step']
+      print('load성공!!')
+
+
     for epoch in range(args.num_train_epochs):
         print_rank_0(
             f"Beginning of Epoch {epoch+1}/{args.num_train_epochs}, Total Micro Batches {len(train_dataloader)}",
@@ -316,7 +341,13 @@ def main():
         rm_model.train()
         mean_loss = 0
         mic_mean_loss=0
+        #load checkpoint
+        
+        #advance data loader to ckpt step
+        #dataloader_to_step(data_loader, step + 1)
         for step, batch in enumerate(train_dataloader):
+            if(step<=road_step):
+              continue
             batch = to_device(batch, device)
             outputs = rm_model(**batch, use_cache=False)
             loss = outputs["loss"]
@@ -328,6 +359,10 @@ def main():
                 print('cur_step: '+str(step)+ ' cur_loss: '+str(mic_mean_loss/10))
                 f.write('cur_step: '+str(step)+ ' cur_loss: '+str(mic_mean_loss/10)+'\n')
                 mic_mean_loss=0
+            if args.save_dir!=None and step % args.save_interval ==0:
+              client_sd['step'] = step
+              #ckpt_id = loss.item()
+              rm_model.save_checkpoint(args.save_dir, None, client_state = client_sd)
         print_rank_0(
             f"Epoch {epoch+1}/{args.num_train_epochs} with loss {mean_loss/(step+1)}",
             args.global_rank)
