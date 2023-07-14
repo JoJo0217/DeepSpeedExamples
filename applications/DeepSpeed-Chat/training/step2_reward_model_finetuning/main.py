@@ -7,7 +7,7 @@ import argparse
 import os
 import math
 import sys
-
+import shutil
 import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
@@ -172,11 +172,15 @@ def parse_args():
     parser.add_argument('--save_interval',
                         type=int,
                         default=200,
-                        help='Only optimize the LoRA parameters.')            
+                        help='save steps')            
     parser.add_argument('--ckpt_id',
                         type=int,
                         default=None,
-                        help='Only optimize the LoRA parameters.')         
+                        help='checkpoint id')
+    parser.add_argument('--ckpt_max',
+                        type=int,
+                        default=1,
+                        help='maximum checkpoint number')     
     parser = deepspeed.add_config_arguments(parser)
     args = parser.parse_args()
 
@@ -187,6 +191,16 @@ def parse_args():
         ), "--gradient_checkpointing and --only_optimize_lora cannot be enabled at the same time."
 
     return args
+
+def limit_folder_count(folder_path, max_count):
+    # 폴더 내부의 모든 폴더 리스트를 가져옵니다.
+    folders = [f for f in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, f))]
+
+    # 폴더 개수가 제한보다 크면 제일 오래된 폴더를 삭제합니다.
+    if len(folders) > max_count:
+        oldest_folder = min(folders, key=lambda f: os.path.getmtime(os.path.join(folder_path, f)))
+        shutil.rmtree(os.path.join(folder_path, oldest_folder))
+        print(f"Deleted the oldest folder: {oldest_folder}")
 
 
 def main():
@@ -359,10 +373,19 @@ def main():
                 print('cur_step: '+str(step)+ ' cur_loss: '+str(mic_mean_loss/10))
                 f.write('cur_step: '+str(step)+ ' cur_loss: '+str(mic_mean_loss/10)+'\n')
                 mic_mean_loss=0
-            if args.save_dir!=None and step % args.save_interval ==0:
+            
+            ##checkpoint save
+            if args.save_dir!=None and  step!=0 and step % args.save_interval ==0:
               client_sd['step'] = step
               #ckpt_id = loss.item()
+              
+
+              limit_folder_count(args.save_dir, args.ckpt_max-1)
+              print('save checkpoint step: ',step)
               rm_model.save_checkpoint(args.save_dir, None, client_state = client_sd)
+
+
+
         print_rank_0(
             f"Epoch {epoch+1}/{args.num_train_epochs} with loss {mean_loss/(step+1)}",
             args.global_rank)
