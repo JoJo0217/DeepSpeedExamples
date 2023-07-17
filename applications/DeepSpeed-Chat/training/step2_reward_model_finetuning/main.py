@@ -360,8 +360,9 @@ def main():
         #advance data loader to ckpt step
         #dataloader_to_step(data_loader, step + 1)
         for step, batch in enumerate(train_dataloader):
-            if(step<=road_step):
-              continue
+            if(0<road_step):
+                road_step-=1
+                continue
             batch = to_device(batch, device)
             outputs = rm_model(**batch, use_cache=False)
             loss = outputs["loss"]
