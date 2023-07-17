@@ -161,6 +161,26 @@ def parse_args():
     parser.add_argument('--only_optimize_lora',
                         action='store_true',
                         help='Only optimize the LoRA parameters.')
+    parser.add_argument('--save_dir',
+                        type=str,
+                        default=None,
+                        help='checkpoint dir')
+    parser.add_argument('--load_dir',
+                        type=str,
+                        default=None,
+                        help='checkpoint load dir')
+    parser.add_argument('--save_interval',
+                        type=int,
+                        default=200,
+                        help='save steps')            
+    parser.add_argument('--ckpt_id',
+                        type=int,
+                        default=None,
+                        help='checkpoint id')
+    parser.add_argument('--ckpt_max',
+                        type=int,
+                        default=1,
+                        help='maximum checkpoint number')
     parser = deepspeed.add_config_arguments(parser)
     args = parser.parse_args()
 
@@ -172,6 +192,15 @@ def parse_args():
 
     return args
 
+def limit_folder_count(folder_path, max_count):
+    # 폴더 내부의 모든 폴더 리스트를 가져옵니다.
+    folders = [f for f in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, f))]
+
+    # 폴더 개수가 제한보다 크면 제일 오래된 폴더를 삭제합니다.
+    if len(folders) > max_count:
+        oldest_folder = min(folders, key=lambda f: os.path.getmtime(os.path.join(folder_path, f)))
+        shutil.rmtree(os.path.join(folder_path, oldest_folder))
+        print(f"Deleted the oldest folder: {oldest_folder}")
 
 def main():
     args = parse_args()
@@ -304,6 +333,15 @@ def main():
     f = open('./train_loss.log', 'w')
     f.close()
     f = open('./train_loss.log', 'a')
+
+    client_sd={}
+    road_step=-1
+    if(args.load_dir!=None):
+      _, client_sd = rm_model.load_checkpoint(args.load_dir, args.ckpt_id)
+      road_step = client_sd['step']
+      print('load성공!!')
+
+    
     for epoch in range(args.num_train_epochs):
         print_rank_0(
             f"Beginning of Epoch {epoch+1}/{args.num_train_epochs}, Total Micro Batches {len(train_dataloader)}",
@@ -311,6 +349,9 @@ def main():
         model.train()
         mean_loss=0
         for step, batch in enumerate(train_dataloader):
+            if(0<road_step):
+                road_step-=1
+                continue
             batch = to_device(batch, device)
             outputs = model(**batch, use_cache=False)
             loss = outputs.loss
@@ -321,6 +362,9 @@ def main():
                 print('cur_step: '+str(step)+ ' cur_loss: '+str(mean_loss/10))
                 f.write('cur_step: '+str(step)+ ' cur_loss: '+str(mean_loss/10)+'\n')
                 mean_loss=0
+            limit_folder_count(args.save_dir, args.ckpt_max-1)
+            print('save checkpoint step: ',step)
+            rm_model.save_checkpoint(args.save_dir, None, client_state = client_sd)
 
         # Evaluate perplexity on the validation set.
         print_rank_0(
