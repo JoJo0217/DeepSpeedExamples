@@ -179,7 +179,7 @@ def parse_args():
                         help='checkpoint id')
     parser.add_argument('--ckpt_max',
                         type=int,
-                        default=1,
+                        default=2,
                         help='maximum checkpoint number')
     parser = deepspeed.add_config_arguments(parser)
     args = parser.parse_args()
