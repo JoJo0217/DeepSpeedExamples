@@ -362,9 +362,10 @@ def main():
                 print('cur_step: '+str(step)+ ' cur_loss: '+str(mean_loss/10))
                 f.write('cur_step: '+str(step)+ ' cur_loss: '+str(mean_loss/10)+'\n')
                 mean_loss=0
-            limit_folder_count(args.save_dir, args.ckpt_max-1)
-            print('save checkpoint step: ',step)
-            rm_model.save_checkpoint(args.save_dir, None, client_state = client_sd)
+            if args.save_dir !=None:
+                limit_folder_count(args.save_dir, args.ckpt_max-1)
+                print('save checkpoint step: ',step)
+                rm_model.save_checkpoint(args.save_dir, None, client_state = client_sd)
 
         # Evaluate perplexity on the validation set.
         print_rank_0(
