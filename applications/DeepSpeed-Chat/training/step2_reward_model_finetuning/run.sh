@@ -20,13 +20,13 @@ deepspeed main.py \
    --num_padding_at_beginning 1 \
    --per_device_train_batch_size 4 \
    --per_device_eval_batch_size 4 \
-   --max_seq_len 512 \
+   --max_seq_len 1024 \
    --learning_rate 9e-6 \
    --weight_decay 0.1 \
    --offload \
    --num_train_epochs 1 \
    --disable_dropout \
-   --gradient_accumulation_steps 1 \
+   --gradient_accumulation_steps 16 \
    --lr_scheduler_type cosine \
    --num_warmup_steps 0 \
    --lora_dim 128 \
