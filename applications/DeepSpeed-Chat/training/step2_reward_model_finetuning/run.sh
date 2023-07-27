@@ -23,7 +23,6 @@ deepspeed main.py \
    --max_seq_len 1024 \
    --learning_rate 9e-6 \
    --weight_decay 0.1 \
-   --offload \
    --num_train_epochs 1 \
    --disable_dropout \
    --gradient_accumulation_steps 16 \
