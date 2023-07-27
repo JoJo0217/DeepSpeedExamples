@@ -21,10 +21,10 @@ deepspeed main.py \
    --per_device_train_batch_size 4 \
    --per_device_eval_batch_size 4 \
    --max_seq_len 512 \
-   --learning_rate 5e-5 \
+   --learning_rate 9e-6 \
    --weight_decay 0.1 \
    --offload \
-   --num_train_epochs 2 \
+   --num_train_epochs 1 \
    --disable_dropout \
    --gradient_accumulation_steps 1 \
    --lr_scheduler_type cosine \
