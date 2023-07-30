@@ -48,4 +48,8 @@ deepspeed --master_port 12346 main.py \
    --actor_zero_stage $ACTOR_ZERO_STAGE \
    --critic_zero_stage $CRITIC_ZERO_STAGE \
    --enable_ema \
-   --output_dir $OUTPUT 
+   --output_dir $OUTPUT \
+   --print_answers \
+   --enable_tensorboard \
+   --tensorboard_path $OUTPUT \
+    &> $OUTPUT/training.log

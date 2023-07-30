@@ -46,8 +46,8 @@ def parse_args():
                         default='2,4,4',
                         help='Comma-separated list of proportions for training'
                         'phase 1, 2, and 3 data. For example the split `6,2,2`'
-                        'will use 60% of data for phase 1, 20% for phase 2'
-                        'and 20% for phase 3.')
+                        'will use 60%% of data for phase 1, 20%% for phase 2'
+                        'and 20%% for phase 3.')
     parser.add_argument(
         '--sft_only_data_path',
         nargs='*',
@@ -181,6 +181,17 @@ def parse_args():
                         type=int,
                         default=2,
                         help='maximum checkpoint number')
+    ## Tensorboard logging
+    parser.add_argument('--enable_tensorboard',
+                        action='store_true',
+                        help='Enable tensorboard logging')
+    parser.add_argument('--tensorboard_path',
+                        type=str,
+                        default="step1_tensorboard")
+    ## Print loss
+    parser.add_argument('--print_loss',
+                        action='store_true',
+                        help='Prints loss at each step.')
     parser = deepspeed.add_config_arguments(parser)
     args = parser.parse_args()
 
@@ -217,7 +228,10 @@ def main():
     args.global_rank = torch.distributed.get_rank()
 
     ds_config = get_train_ds_config(offload=args.offload,
-                                    stage=args.zero_stage)
+                                    stage=args.zero_stage,
+                                    enable_tensorboard=args.enable_tensorboard,
+                                    tb_path=args.tensorboard_path,
+                                    tb_name="step1_model")
     ds_config[
         'train_micro_batch_size_per_gpu'] = args.per_device_train_batch_size
     ds_config[
@@ -356,6 +370,10 @@ def main():
             outputs = model(**batch, use_cache=False)
             loss = outputs.loss
             mean_loss+=loss.item()
+#            if args.print_loss:
+#                print(
+#                    f"Epoch: {epoch}, Step: {step}, Rank: {torch.distributed.get_rank()}, loss = {loss}"
+#                )
             model.backward(loss)
             model.step()
             if step!=0 and step%10==0:
