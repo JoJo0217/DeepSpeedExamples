@@ -52,4 +52,6 @@ deepspeed --master_port 12346 main.py \
    --only_optimize_lora \
    --actor_zero_stage $ACTOR_ZERO_STAGE \
    --critic_zero_stage $CRITIC_ZERO_STAGE \
+   --enable_tensorboard \
+   --tensorboard_path $OUTPUT \
    --output_dir $OUTPUT 
