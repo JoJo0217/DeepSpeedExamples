@@ -1,3 +1,11 @@
+#!/bin/bash
+# Copyright (c) Microsoft Corporation.
+# SPDX-License-Identifier: Apache-2.0
+
+# DeepSpeed Team
+
+# Add the path to the finetuned model
+rm -rf /tmp/data_files/
 deepspeed  test.py \
     --model_name_or_path /content/drive/MyDrive/rlhf/DeepSpeedExamples/applications/DeepSpeed-Chat/training/step2_reward_model_finetuning/output_fullfine0.7 \
     --num_padding_at_beginning 0 \
