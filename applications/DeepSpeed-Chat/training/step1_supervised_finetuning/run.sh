@@ -27,5 +27,7 @@ deepspeed main.py \
    --lora_dim 128 \
    --lora_module_name query_key_value \
    --only_optimize_lora \
+   --enable_tensorboard \
+   --tensorboard_path $OUTPUT \
    --deepspeed \
    --output_dir $OUTPUT_PATH \
