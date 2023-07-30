@@ -32,6 +32,8 @@ deepspeed main.py \
    --lora_module_name query_key_value \
    --only_optimize_lora \
    --seed 1234 \
+   --enable_tensorboard \
+   --tensorboard_path $OUTPUT \
    --zero_stage $ZERO_STAGE \
    --deepspeed \
    --output_dir $OUTPUT
