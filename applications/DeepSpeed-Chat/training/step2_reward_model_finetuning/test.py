@@ -222,68 +222,68 @@ def run_single_sample():
 
 
 def evaluation_reward():
-  args = parse_args()
-  if args.local_rank == -1:
+    args = parse_args()
+    if args.local_rank == -1:
         device = torch.device("cuda")
-  else:
+    else:
       torch.cuda.set_device(args.local_rank)
       device = torch.device("cuda", args.local_rank)
       # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
       # torch.distributed.init_process_group(backend='nccl')
       deepspeed.init_distributed()
-  #args.global_rank = torch.distributed.get_rank()
-  
-  set_random_seed(args.seed)
-  #torch.distributed.barrier()
-  train_phase = 2
-  model, tokenizer = load_stuff(args.model_name_or_path,
+    #args.global_rank = torch.distributed.get_rank()
+    
+    set_random_seed(args.seed)
+    #torch.distributed.barrier()
+    train_phase = 2
+    model, tokenizer = load_stuff(args.model_name_or_path,
                                      args.num_padding_at_beginning)
-  train_dataset, eval_dataset = create_prompt_dataset(
+    train_dataset, eval_dataset = create_prompt_dataset(
         args.local_rank, args.data_path, args.data_split,
         args.data_output_path, train_phase, args.seed, tokenizer,
         args.max_seq_len)
-
-  data_collator = DataCollatorReward()
-  if args.local_rank == -1:
-  #    train_sampler = RandomSampler(train_dataset)
+    
+    data_collator = DataCollatorReward()
+    if args.local_rank == -1:
+    #    train_sampler = RandomSampler(train_dataset)
       eval_sampler = SequentialSampler(eval_dataset)
-  else:
-  #    train_sampler = DistributedSampler(train_dataset)
+    else:
+    #    train_sampler = DistributedSampler(train_dataset)
       eval_sampler = DistributedSampler(eval_dataset)
-  #train_dataloader = DataLoader(train_dataset,
-  #                              collate_fn=data_collator,
-  #                              sampler=train_sampler,
-  #                              batch_size=args.per_device_train_batch_size)
-  eval_sampler = SequentialSampler(eval_dataset)
-  eval_dataloader = DataLoader(eval_dataset,
+    #train_dataloader = DataLoader(train_dataset,
+    #                              collate_fn=data_collator,
+    #                              sampler=train_sampler,
+    #                              batch_size=args.per_device_train_batch_size)
+    eval_sampler = SequentialSampler(eval_dataset)
+    eval_dataloader = DataLoader(eval_dataset,
                                 collate_fn=data_collator,
                                 sampler=eval_sampler,
                                 batch_size=args.per_device_eval_batch_size)
-  model=model.to(device)
-  model.eval()
-  correct_predictions = 0
-  total_predictions = 0
-  scores = 0
-  print('####평가 시작####')
-  print('데이터 개수: ',len(eval_dataloader)*args.per_device_eval_batch_size)
-  for step, batch in enumerate(eval_dataloader):
+    model=model.to(device)
+    model.eval()
+    correct_predictions = 0
+    total_predictions = 0
+    scores = 0
+    print('####평가 시작####')
+    print('데이터 개수: ',len(eval_dataloader)*args.per_device_eval_batch_size)
+    for step, batch in enumerate(eval_dataloader):
       batch = to_device(batch, device)
       with torch.no_grad():
           outputs = model(**batch)
-
+    
       chosen = outputs["chosen_mean_scores"]
       rejected = outputs["rejected_mean_scores"]
       correct_predictions += (chosen > rejected).sum()
       total_predictions += chosen.shape[0]
       scores += outputs["chosen_mean_scores"].mean().float()
-  acc = correct_predictions / total_predictions
-  scores = scores / (step + 1)
-  try:
+    acc = correct_predictions / total_predictions
+    scores = scores / (step + 1)
+    try:
       acc = get_all_reduce_mean(acc).item()
       scores = get_all_reduce_mean(scores).item()
-  except:
+    except:
       pass
-  return scores, acc
+    return scores, acc
 
 if __name__ == "__main__":
     #run_pair_comparison()
