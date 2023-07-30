@@ -265,6 +265,7 @@ def evaluation_reward():
   total_predictions = 0
   scores = 0
   print('####평가 시작####')
+  print('데이터 개수: ',len(eval_dataloader)*args.per_device_eval_batch_size)
   for step, batch in enumerate(eval_dataloader):
       batch = to_device(batch, device)
       with torch.no_grad():
