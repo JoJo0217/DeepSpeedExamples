@@ -84,6 +84,41 @@ class DeepSpeedPPOTrainer():
         prompt_length = prompts.shape[1]
         self.prompt_length = prompt_length
         ans = seq[:, prompt_length:]
+        ###koalpaca
+        #ans = self.tokenizer.batch_decode(ans,, skip_special_tokens=True)
+        def split_list(original_list, sub_list):
+            if not sub_list:
+                return "sub_list should not be empty"
+        
+            results = []
+            buffer = []
+            sub_list_idx = 0
+        
+            for item in original_list:
+                buffer.append(item)
+        
+                if item == sub_list[sub_list_idx]:
+                    sub_list_idx += 1
+                else:
+                    sub_list_idx = 0
+        
+                if sub_list_idx == len(sub_list):
+                    results.append(tuple(buffer[:-len(sub_list)]))
+                    buffer = []
+                    sub_list_idx = 0
+        
+            results.append(tuple(buffer))
+            return results
+        sub_list1 = [6501, 6, 6]
+        sub_list2 = [6, 6, 6]
+        result=[]
+        for row in ans:
+            tmp=split_list(row, sub_list1)[0]
+            tmp=split_list(tmp, sub_list2)[0]
+            result.append(tmp)
+        ans=torch.tensor(result)
+
+        ###koalapca added
         valid_ans_len = (ans != self.tokenizer.pad_token_id).sum(dim=-1)
 
         if self.args.print_answers:
