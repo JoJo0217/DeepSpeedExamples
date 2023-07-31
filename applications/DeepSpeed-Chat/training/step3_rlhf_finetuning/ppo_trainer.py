@@ -109,6 +109,12 @@ class DeepSpeedPPOTrainer():
         
             results.append(buffer)
             return results
+        def pad_list(lst, target_length, padding_value=0):
+            for i, inner_list in enumerate(lst):
+                if len(inner_list) < target_length:
+                    lst[i] = inner_list + [padding_value] * (target_length - len(inner_list))
+            return lst
+        
         sub_list1 = [6501, 6, 6]
         sub_list2 = [6, 6, 6]
         result=[]
@@ -117,6 +123,8 @@ class DeepSpeedPPOTrainer():
             tmp=split_list(tmp, sub_list2)[0]
             tmp.append(torch.tensor(self.tokenizer.eos_token_id))
             result.append(tmp)
+        max_length = max(len(x) for x in result)
+        result = pad_list(result, max_length,torch.tensor(self.tokenizer.eos_token_id))
         ans=torch.tensor(result)
 
         ###koalapca added
