@@ -45,10 +45,10 @@ deepspeed --master_port 12346 main.py \
    --num_warmup_steps 10 \
    --deepspeed --seed 1234 \
    --enable_hybrid_engine \
-   --actor_lora_dim 128 \
+   --actor_lora_dim 8 \
    --offload_reference_model \
    --actor_lora_module_name query_key_value \
-   --critic_lora_dim 128 \
+   --critic_lora_dim 8 \
    --critic_lora_module_name query_key_value \
    --only_optimize_lora \
    --actor_zero_stage $ACTOR_ZERO_STAGE \
