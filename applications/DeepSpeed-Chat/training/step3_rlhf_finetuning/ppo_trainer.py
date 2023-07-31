@@ -103,11 +103,11 @@ class DeepSpeedPPOTrainer():
                     sub_list_idx = 0
         
                 if sub_list_idx == len(sub_list):
-                    results.append(tuple(buffer[:-len(sub_list)]))
+                    results.append(buffer[:-len(sub_list)])
                     buffer = []
                     sub_list_idx = 0
         
-            results.append(tuple(buffer))
+            results.append(buffer)
             return results
         sub_list1 = [6501, 6, 6]
         sub_list2 = [6, 6, 6]
@@ -115,6 +115,7 @@ class DeepSpeedPPOTrainer():
         for row in ans:
             tmp=split_list(row, sub_list1)[0]
             tmp=split_list(tmp, sub_list2)[0]
+            tmp.append(torch.tensor(self.tokenizer.eos_token_id))
             result.append(tmp)
         ans=torch.tensor(result)
 
