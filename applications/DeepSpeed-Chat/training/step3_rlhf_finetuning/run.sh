@@ -12,10 +12,10 @@ if [ "$OUTPUT" == "" ]; then
     OUTPUT=./output
 fi
 if [ "$ACTOR_ZERO_STAGE" == "" ]; then
-    ACTOR_ZERO_STAGE=3
+    ACTOR_ZERO_STAGE=2
 fi
 if [ "$CRITIC_ZERO_STAGE" == "" ]; then
-    CRITIC_ZERO_STAGE=3
+    CRITIC_ZERO_STAGE=2
 fi
 mkdir -p $OUTPUT
 rm -rf /tmp/data_files/
