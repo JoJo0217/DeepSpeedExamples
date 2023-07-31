@@ -46,6 +46,7 @@ deepspeed --master_port 12346 main.py \
    --deepspeed --seed 1234 \
    --enable_hybrid_engine \
    --actor_lora_dim 128 \
+   --offload_reference_model \
    --actor_lora_module_name query_key_value \
    --critic_lora_dim 128 \
    --critic_lora_module_name query_key_value \
