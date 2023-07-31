@@ -34,8 +34,8 @@ deepspeed --master_port 12346 main.py \
    --per_device_mini_train_batch_size 2 \
    --generation_batch_numbers 1 \
    --ppo_epochs 1 \
-   --max_answer_seq_len 512 \
-   --max_prompt_seq_len 512 \
+   --max_answer_seq_len 256 \
+   --max_prompt_seq_len 256 \
    --actor_learning_rate ${Actor_Lr} \
    --critic_learning_rate ${Critic_Lr} \
    --num_train_epochs 1 \
