@@ -22,7 +22,7 @@ deepspeed main.py \
    --lr_scheduler_type cosine \
    --num_warmup_steps 0 \
    --seed 1234 \
-   --zero_stage 3 \
+   --zero_stage 2 \
    --offload \
    --lora_dim 128 \
    --lora_module_name query_key_value \
