@@ -352,7 +352,7 @@ def main():
     client_sd={}
     road_step=-1
     if(args.load_dir!=None):
-      _, client_sd = rm_model.load_checkpoint(args.load_dir, args.ckpt_id)
+      _, client_sd = model.load_checkpoint(args.load_dir, args.ckpt_id)
       road_step = client_sd['step']
       print('load성공!!')
 
@@ -388,7 +388,7 @@ def main():
     
                 limit_folder_count(args.save_dir, args.ckpt_max-1)
                 print('save checkpoint step: ',step)
-                rm_model.save_checkpoint(args.save_dir, None, client_state = client_sd)
+                model.save_checkpoint(args.save_dir, None, client_state = client_sd)
 
         # Evaluate perplexity on the validation set.
         print_rank_0(
