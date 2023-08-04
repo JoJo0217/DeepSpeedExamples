@@ -55,4 +55,5 @@ deepspeed --master_port 12346 main.py \
    --critic_zero_stage $CRITIC_ZERO_STAGE \
    --enable_tensorboard \
    --tensorboard_path $OUTPUT \
+   --print_answers \
    --output_dir $OUTPUT 
