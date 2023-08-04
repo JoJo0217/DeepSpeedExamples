@@ -495,7 +495,7 @@ def main():
                     f'epoch: {epoch}|step: {step}|ppo_ep: {ppo_ep+1}|act_loss: {actor_loss_sum/inner_iter}|cri_loss: {critic_loss_sum/inner_iter}|unsuper_loss: {unsup_loss_sum/inner_iter}',
                     args.global_rank)
                 f.write(f'epoch: {epoch}|step: {step}|ppo_ep: {ppo_ep+1}|act_loss: {actor_loss_sum/inner_iter}|cri_loss: {critic_loss_sum/inner_iter}|unsuper_loss: {unsup_loss_sum/inner_iter}'
-                    +str(args.global_rank))
+                    +str(args.global_rank)+'\n')
                 average_reward = get_all_reduce_mean(average_reward).item()
                 print_rank_0(
                     f"average reward score: {average_reward/inner_iter}",
