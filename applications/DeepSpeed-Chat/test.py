@@ -2,20 +2,27 @@ import gradio as gr
 from gradio.components import Slider, Dropdown
 import torch
 from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
+import jsonlines
 import gc
 import math
-
+from peft import PeftModel
+from datetime import datetime
+import os
 MODEL_LIST = [
-    "/content/drive/MyDrive/rlhf/test1"
+    './training/step3_rlhf_finetuning/output/actor/'
 ]
 
-CURRENT_MODEL = model = pipe = tokenizer = None
-#lora_path='/dse/checkpoint-35400'
+os.makedirs('./data',exist_ok=True)
+save_file_dir=f'./data/talk{datetime.now().strftime("%m_%d")}.jsonl'
 
+CURRENT_MODEL = model = pipe = tokenizer = None
+#lora_path='/dse/checkpoint_2640/'
+cur_model_name=None
 def load_model(model_name):
-    global CURRENT_MODEL, model, pipe, tokenizer
+    global CURRENT_MODEL, model, pipe, tokenizer, cur_model_name
 
     if (model_name != CURRENT_MODEL):
+        cur_model_name=model_name
         print(f"Start loading {model_name}")
         CURRENT_MODEL = model_name
         model = pipe = tokenizer = None
@@ -25,19 +32,9 @@ def load_model(model_name):
         model = AutoModelForCausalLM.from_pretrained(
             model_name,
             device_map="auto",
-            #load_in_8bit=True,
+            load_in_8bit=True,
         )
         tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-        #model = PeftModel.from_pretrained(
-        #  base,
-        #  lora_path,
-        #  torch_dtype=torch.float16,)
-        model.config.end_token_id =tokenizer.eos_token_id
-        model.config.pad_token_id = model.config.eos_token_id
-        model.resize_token_embeddings(int(8 *math.ceil(len(tokenizer) / 8.0)))
-
-
         pipe = pipeline(
             "text-generation",
             model=model,
@@ -50,58 +47,48 @@ def load_model(model_name):
 
 
 def answer(state, state_chatbot, text, temperature, top_p, top_k, rep_penalty):
-    print(type(state))
-    state.clear()
-    state =[
-            {
-                "role": "맥락",
-                "content": "KoMoseori(코모서리)는 EleutherAI에서 개발한 Polyglot-ko 라는 한국어 모델을 기반으로, 자연어 처리 연구자 moseoidev가 개발한 모델입니다.",
-            },
-            {
-                "role": "맥락",
-                "content": "ChatKoMoseori(챗코모서리)는 KoMoseori를 채팅형으로 만든 것입니다.",
-            },
-            {"role": "명령어", "content": "친절한 AI 챗봇인 ChatKoMoseori 로서 답변을 합니다."},
-            {
-                "role": "명령어",
-                "content": "인사에는 짧고 간단한 친절한 인사로 답하고, 아래 대화에 간단하고 짧게 답해주세요.",
-            },
-        ]
-
-    messages = state + [{"role": "질문", "content": text}]
+    global cur_model_name
+    state =[]
+    messages = state + [{"role": "명령어", "content": text}]
 
     conversation_history = "\n".join(
-        [f"### {msg['role']}:\n{msg['content']}" for msg in messages]
+        [f"아래는 작업을 설명하는 명령어입니다. 요청을 적절히 완료하는 응답을 작성하세요.\n\n### {msg['role']}:\n{msg['content']}" for msg in messages]
     )
 
     load_model(CURRENT_MODEL)
     ans = pipe(
-        conversation_history + "\n\n### 답변:",
-        do_sample=True,
-        max_new_tokens=256,
+        conversation_history + "\n\n### 응답:",
+        #do_sample=False,
+        max_new_tokens=512,
         temperature=temperature,
         top_p=top_p,
         top_k=top_k,
+        #num_beams = 1,
         repetition_penalty = rep_penalty,
-        no_repeat_ngram_size=3,
+        #no_repeat_ngram_size=3,
         return_full_text=False,
         eos_token_id=2,
     )
 
     msg = ans[0]["generated_text"]
 
-    #if "###" in msg:
-    #    msg = msg.split("###")[0]
+    #if "##" in msg:
+    #    msg = msg.split("##")[0]
 
     #while ('\\u200b' in msg):
     #    print("replaced!")
     #    msg.replace('\\u200b', '')
 
-    #new_state = [{"role": "이전 질문", "content": text}, {"role": "이전 답변", "content": msg}]
+    new_state = [{"role": "이전 질문", "content": text}, {"role": "이전 답변", "content": msg}]
 
     #state = state + new_state
     state_chatbot = state_chatbot + [(text, msg)]
 
+    new_talk={"model":cur_model_name,"ask":text,"answer":msg,"temperature":temperature,"top_p":top_p,"top_k":top_k,"rep_penalty":rep_penalty}
+    save_file_dir=f'./data/talk{datetime.now().strftime("%m_%d")}.jsonl'
+    with jsonlines.open(save_file_dir, mode='a') as writer:
+        writer.write(new_talk)
+    
     print(state)
     print(state_chatbot)
 
@@ -182,7 +169,6 @@ with gr.Blocks(css="#chatbot .overflow-y-auto{height:750px}") as demo:
         clear.click(fn=clear_history, inputs=[], outputs=[state,state_chatbot])
 
     txt.submit(answer, [state, state_chatbot, txt, temperature_slider, top_p_slider, top_k_slider, rep_penalty_slider], [state, state_chatbot, chatbot])
-    #txt.submit(answer, [state, state_chatbot, txt, temperature_slider, top_p_slider, top_k_slider, rep_penalty_slider], [[], [], chatbot])
     txt.submit(lambda: "", None, txt)
 
 load_model(MODEL_LIST[0])
