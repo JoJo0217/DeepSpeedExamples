@@ -288,8 +288,8 @@ def main():
             correct_predictions += (chosen > rejected).sum()
             total_predictions += chosen.shape[0]
             scores += outputs["chosen_mean_scores"].mean().float()
-            if step == 99:  # For faster evaluation and debugging
-                break
+            #if step == 99:  # For faster evaluation and debugging
+            #    break
         acc = correct_predictions / total_predictions
         scores = scores / (step + 1)
         try:
