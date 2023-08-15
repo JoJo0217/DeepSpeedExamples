@@ -86,6 +86,7 @@ class DeepSpeedPPOTrainer():
         ans = seq[:, prompt_length:]
         ###koalpaca
         #ans = self.tokenizer.batch_decode(ans,, skip_special_tokens=True)
+        '''
         def split_list(original_list, sub_list):
             if not sub_list:
                 return "sub_list should not be empty"
@@ -126,7 +127,7 @@ class DeepSpeedPPOTrainer():
         max_length = max(len(x) for x in result)
         result = pad_list(result, max_length,torch.tensor(self.tokenizer.eos_token_id))
         ans=torch.tensor(result)
-
+        '''
         ###koalapca added
         valid_ans_len = (ans != self.tokenizer.pad_token_id).sum(dim=-1)
 
