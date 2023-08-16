@@ -182,6 +182,13 @@ def parse_args():
                         type=int,
                         default=2,
                         help='maximum checkpoint number')
+    parser.add_argument(
+        "--lora_learning_rate",
+        type=float,
+        default=5e-4,
+        help=
+        "Initial LoRA learning rate (after the potential warmup period) to use."
+    )
     ## Tensorboard logging
     parser.add_argument('--enable_tensorboard',
                         action='store_true',
@@ -304,7 +311,7 @@ def main():
 
     # Split weights in two groups, one with weight decay and the other not.
     optimizer_grouped_parameters = get_optimizer_grouped_parameters(
-        model, args.weight_decay)
+        model, args.weight_decay, args.lora_learning_rate)
 
     AdamOptimizer = DeepSpeedCPUAdam if args.offload else FusedAdam
     optimizer = AdamOptimizer(optimizer_grouped_parameters,
