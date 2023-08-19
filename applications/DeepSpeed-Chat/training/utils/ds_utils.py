@@ -26,17 +26,14 @@ def get_train_ds_config(offload,
     zero_opt_dict = {
         "stage": stage,
         "offload_param": {
-            "device": device,
-            "pin_memory": True
+            "device": device
         },
         "offload_optimizer": {
-            "device": device,
-            "pin_memory": True
+            "device": device
         },
         "stage3_param_persistence_threshold": 1e4,
         "stage3_max_live_parameters": 3e7,
         "stage3_prefetch_bucket_size": 3e7,
-        "stage3_max_reuse_distance":3e7,
         "memory_efficient_linear": False
     }
     if enable_mixed_precision_lora:
@@ -47,23 +44,10 @@ def get_train_ds_config(offload,
         "train_micro_batch_size_per_gpu": MICRO_BATCH_SIZE,
         "steps_per_print": 10,
         "zero_optimization": zero_opt_dict,
-        #"fp16": {
-        #    "enabled": False,
-        #    "auto_cast": False,
-        #    "consecutive_hysteresis": False,
-        #    "initial_scale_power": 16,
-        #    "loss_scale":0,
-        #    "hysteresis":2,
-        #    "min_loss_scale":1,
-        #    "loss_scale_window": 1000,
-        #},
-        "bf16":{
-          "enabled":True
+        "fp16": {
+            "enabled": True,
+            "loss_scale_window": 100
         },
-        "checkpoint":{
-          "use_node_local_storage":True
-        }
-        ,
         "gradient_clipping": 1.0,
         "prescale_gradients": False,
         "wall_clock_breakdown": False,
